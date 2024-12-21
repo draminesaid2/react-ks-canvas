@@ -6,14 +6,20 @@ import { toast } from "@/components/ui/use-toast";
 import { initKonnectPayment } from '@/services/konnectApi';
 
 interface PaymentButtonsProps {
-  enabled: boolean;
-  cartItems: any[];
-  userDetails: any;
-  total: number;
-  shipping: number;
-  finalTotal: number;
+  enabled: boolean;           // Whether payment buttons should be enabled
+  cartItems: any[];          // Items in the cart
+  userDetails: any;          // User's delivery and contact information
+  total: number;             // Subtotal before shipping
+  shipping: number;          // Shipping cost
+  finalTotal: number;        // Final total including shipping
 }
 
+/**
+ * PaymentButtons Component
+ * 
+ * Renders payment method buttons for Konnect and cash payments.
+ * Handles payment initialization with the Konnect API.
+ */
 const PaymentButtons = ({ 
   enabled, 
   cartItems, 
@@ -24,6 +30,16 @@ const PaymentButtons = ({
 }: PaymentButtonsProps) => {
   const navigate = useNavigate();
 
+  /**
+   * Handles Konnect payment initialization
+   * 
+   * 1. Validates user details
+   * 2. Initializes payment with Konnect API
+   * 3. Redirects to Konnect payment page
+   * 
+   * On success: User is redirected to Konnect payment gateway
+   * On failure: Error toast is shown
+   */
   const handleKonnectPayment = async () => {
     if (!enabled || !userDetails) {
       toast({
@@ -56,6 +72,11 @@ const PaymentButtons = ({
     }
   };
 
+  /**
+   * Handles cash payment option
+   * 
+   * Navigates to order preview page with payment method set to 'cash'
+   */
   const handleCashPayment = () => {
     navigate('/order-preview', {
       state: {

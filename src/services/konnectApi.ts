@@ -1,20 +1,40 @@
+/**
+ * Konnect Payment API Integration
+ * 
+ * This module handles the integration with Konnect's payment gateway API.
+ * API Base URL: https://api.preprod.konnect.network/api/v2/
+ */
+
 const KONNECT_API_URL = 'https://api.preprod.konnect.network/api/v2';
 const KONNECT_API_KEY = '657af1930bef8bdfd045b3a3:QnAJoNiMYb8g0LAlbdEbeFrc3brvAzu';
-const RECEIVER_WALLET_ID = '5f7a209aeb3f76490ac4a3d1'; // Replace with your actual wallet ID
+const RECEIVER_WALLET_ID = '5f7a209aeb3f76490ac4a3d1';
 
 interface InitPaymentResponse {
-  payUrl: string;
-  paymentRef: string;
+  payUrl: string;      // URL where the client will be redirected to make the payment
+  paymentRef: string;  // Unique payment reference ID
 }
 
 interface KonnectPaymentRequest {
-  amount: number;
-  firstName: string;
-  lastName: string;
-  email: string;
-  orderId: string;
+  amount: number;      // Amount in millimes (1000 millimes = 1 TND)
+  firstName: string;   // Payer's first name
+  lastName: string;    // Payer's last name
+  email: string;       // Payer's email
+  orderId: string;     // Your internal order reference
 }
 
+/**
+ * Initializes a payment request with Konnect
+ * 
+ * @param {KonnectPaymentRequest} params - Payment initialization parameters
+ * @returns {Promise<InitPaymentResponse>} Payment URL and reference
+ * 
+ * @throws Will throw an error if the API request fails
+ * 
+ * API Requirements:
+ * - amount must be in millimes (1 TND = 1000 millimes)
+ * - receiverWalletId is required and must be valid
+ * - API key must be included in headers
+ */
 export const initKonnectPayment = async ({
   amount,
   firstName,
@@ -32,17 +52,17 @@ export const initKonnectPayment = async ({
       body: JSON.stringify({
         receiverWalletId: RECEIVER_WALLET_ID,
         amount: amount * 1000, // Convert to millimes
-        token: 'TND',
-        type: 'immediate',
+        token: 'TND',         // Currency token
+        type: 'immediate',    // Payment must be made in full
         description: `Order #${orderId}`,
-        acceptedPaymentMethods: ['bank_card', 'e-DINAR'],
+        acceptedPaymentMethods: ['bank_card', 'e-DINAR'], // Available payment methods
         firstName,
         lastName,
         email,
         orderId,
         successUrl: `${window.location.origin}/payment-success`,
         failUrl: `${window.location.origin}/payment-failure`,
-        theme: 'light',
+        theme: 'light',       // Payment gateway theme
       }),
     });
 
@@ -57,6 +77,16 @@ export const initKonnectPayment = async ({
   }
 };
 
+/**
+ * Retrieves the status of a payment
+ * 
+ * @param {string} paymentId - The payment reference ID
+ * @returns {Promise<any>} Payment status details
+ * 
+ * Payment Status:
+ * - "completed": Payment was successful
+ * - "pending": Payment has failed or not attempted yet
+ */
 export const getPaymentStatus = async (paymentId: string) => {
   try {
     const response = await fetch(`${KONNECT_API_URL}/payments/${paymentId}`, {
