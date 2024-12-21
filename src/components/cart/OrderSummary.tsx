@@ -2,10 +2,18 @@ import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { UserDetails } from '@/utils/userDetailsStorage';
 import PaymentButtons from './PaymentButtons';
-import { Pencil, Trash2 } from 'lucide-react';
+import { Pencil, Trash2, Tag } from 'lucide-react';
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/components/ui/use-toast";
+import { Link } from 'react-router-dom';
+
+const promoCodes = {
+  'WELCOME10': { discount: 10, description: 'Code de bienvenue' },
+  'SUMMER20': { discount: 20, description: 'Offre d\'été' },
+  'SPECIAL30': { discount: 30, description: 'Offre spéciale' },
+  'LUNCH2024': { discount: 25, description: 'Offre du déjeuner' }
+};
 
 interface OrderSummaryProps {
   total: number;
@@ -31,20 +39,15 @@ const OrderSummary = ({
   const [finalTotal, setFinalTotal] = useState(initialFinalTotal);
 
   const handleApplyDiscount = () => {
-    // This is a simple example - in a real app, you'd validate against actual discount codes
-    const validDiscounts: { [key: string]: number } = {
-      'WELCOME10': 10,
-      'SUMMER20': 20,
-      'SPECIAL30': 30
-    };
-
-    if (validDiscounts[discountCode]) {
-      const discountAmount = (total * validDiscounts[discountCode]) / 100;
+    const promoCode = promoCodes[discountCode];
+    
+    if (promoCode) {
+      const discountAmount = (total * promoCode.discount) / 100;
       setDiscount(discountAmount);
       setFinalTotal(total + shipping - discountAmount);
       toast({
         title: "Code promo appliqué",
-        description: `Réduction de ${validDiscounts[discountCode]}% appliquée`,
+        description: `Réduction de ${promoCode.discount}% appliquée`,
         style: {
           backgroundColor: '#700100',
           color: 'white',
@@ -128,6 +131,13 @@ const OrderSummary = ({
                 Appliquer
               </Button>
             </div>
+            <Link 
+              to="/promo-codes"
+              className="text-sm text-[#700100] hover:underline flex items-center gap-1"
+            >
+              <Tag size={14} />
+              Voir les codes promo disponibles
+            </Link>
             {discount > 0 && (
               <div className="flex justify-between text-[#8E9196]">
                 <span>Réduction</span>
