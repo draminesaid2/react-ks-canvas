@@ -1,8 +1,11 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { UserDetails } from '@/utils/userDetailsStorage';
 import PaymentButtons from './PaymentButtons';
 import { Pencil, Trash2 } from 'lucide-react';
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { toast } from "@/components/ui/use-toast";
 
 interface OrderSummaryProps {
   total: number;
@@ -17,12 +20,46 @@ interface OrderSummaryProps {
 const OrderSummary = ({ 
   total, 
   shipping, 
-  finalTotal, 
+  finalTotal: initialFinalTotal, 
   userDetails,
   cartItems,
   onEditDetails,
   onDeleteDetails
 }: OrderSummaryProps) => {
+  const [discountCode, setDiscountCode] = useState('');
+  const [discount, setDiscount] = useState(0);
+  const [finalTotal, setFinalTotal] = useState(initialFinalTotal);
+
+  const handleApplyDiscount = () => {
+    // This is a simple example - in a real app, you'd validate against actual discount codes
+    const validDiscounts: { [key: string]: number } = {
+      'WELCOME10': 10,
+      'SUMMER20': 20,
+      'SPECIAL30': 30
+    };
+
+    if (validDiscounts[discountCode]) {
+      const discountAmount = (total * validDiscounts[discountCode]) / 100;
+      setDiscount(discountAmount);
+      setFinalTotal(total + shipping - discountAmount);
+      toast({
+        title: "Code promo appliqué",
+        description: `Réduction de ${validDiscounts[discountCode]}% appliquée`,
+        style: {
+          backgroundColor: '#700100',
+          color: 'white',
+          border: '1px solid #590000',
+        },
+      });
+    } else {
+      toast({
+        title: "Code invalide",
+        description: "Le code promo n'est pas valide",
+        variant: "destructive",
+      });
+    }
+  };
+
   return (
     <motion.div 
       initial={{ opacity: 0, x: 20 }}
@@ -74,6 +111,31 @@ const OrderSummary = ({
             <span>Livraison</span>
             <span>{shipping === 0 ? 'Gratuite' : `${shipping.toFixed(2)} TND`}</span>
           </div>
+          
+          {/* Discount Code Section */}
+          <div className="space-y-2 pt-2 border-t border-gray-100">
+            <div className="flex gap-2">
+              <Input
+                placeholder="Code promo"
+                value={discountCode}
+                onChange={(e) => setDiscountCode(e.target.value.toUpperCase())}
+                className="bg-white border-gray-300 focus:border-[#700100] focus:ring-[#700100]"
+              />
+              <Button
+                onClick={handleApplyDiscount}
+                className="bg-[#700100] text-white hover:bg-[#591C1C] transition-colors"
+              >
+                Appliquer
+              </Button>
+            </div>
+            {discount > 0 && (
+              <div className="flex justify-between text-[#8E9196]">
+                <span>Réduction</span>
+                <span>-{discount.toFixed(2)} TND</span>
+              </div>
+            )}
+          </div>
+
           <div className="border-t border-gray-100 pt-4">
             <div className="flex justify-between text-lg font-medium text-[#1A1F2C]">
               <span>Total</span>

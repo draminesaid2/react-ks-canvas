@@ -6,7 +6,7 @@
  */
 
 const KONNECT_API_URL = 'https://api.preprod.konnect.network/api/v2';
-const KONNECT_API_KEY = '657af1930bef8bdfd045b3a3:QnAJoNiMYb8g0LAlbdEbeFrc3brvAzu';
+const KONNECT_API_KEY = '657af1930bef8bdfd045b3a3:CByyyzIoQrdc3bLD';
 const RECEIVER_WALLET_ID = '5f7a209aeb3f76490ac4a3d1';
 
 interface InitPaymentResponse {
@@ -29,11 +29,6 @@ interface KonnectPaymentRequest {
  * @returns {Promise<InitPaymentResponse>} Payment URL and reference
  * 
  * @throws Will throw an error if the API request fails
- * 
- * API Requirements:
- * - amount must be in millimes (1 TND = 1000 millimes)
- * - receiverWalletId is required and must be valid
- * - API key must be included in headers
  */
 export const initKonnectPayment = async ({
   amount,
