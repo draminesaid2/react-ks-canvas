@@ -2,6 +2,8 @@ import React from 'react';
 import { CreditCard, Wallet } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
+import { toast } from "@/components/ui/use-toast";
+import { initKonnectPayment } from '@/services/konnectApi';
 
 interface PaymentButtonsProps {
   enabled: boolean;
@@ -22,7 +24,39 @@ const PaymentButtons = ({
 }: PaymentButtonsProps) => {
   const navigate = useNavigate();
 
-  const handlePayment = (method: 'konnekt' | 'cash') => {
+  const handleKonnectPayment = async () => {
+    if (!enabled || !userDetails) {
+      toast({
+        title: "Error",
+        description: "Please fill in your details first",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      const orderId = `ORDER-${Date.now()}`;
+      const response = await initKonnectPayment({
+        amount: finalTotal,
+        firstName: userDetails.firstName,
+        lastName: userDetails.lastName,
+        email: userDetails.email,
+        orderId,
+      });
+
+      // Redirect to Konnect payment page
+      window.location.href = response.payUrl;
+    } catch (error) {
+      console.error('Payment error:', error);
+      toast({
+        title: "Payment Error",
+        description: "Failed to initialize payment. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleCashPayment = () => {
     navigate('/order-preview', {
       state: {
         orderDetails: {
@@ -31,7 +65,7 @@ const PaymentButtons = ({
           total,
           shipping,
           finalTotal,
-          paymentMethod: method
+          paymentMethod: 'cash'
         }
       }
     });
@@ -43,7 +77,7 @@ const PaymentButtons = ({
         initial={{ opacity: 0.5 }}
         animate={{ opacity: enabled ? 1 : 0.5 }}
         whileHover={enabled ? { scale: 1.02 } : {}}
-        onClick={() => enabled && handlePayment('konnekt')}
+        onClick={handleKonnectPayment}
         disabled={!enabled}
         className="w-full bg-[#700100] text-white px-4 py-3 rounded-md hover:bg-[#591C1C] transition-all duration-300 flex items-center justify-center gap-2 disabled:cursor-not-allowed"
       >
@@ -54,7 +88,7 @@ const PaymentButtons = ({
         initial={{ opacity: 0.5 }}
         animate={{ opacity: enabled ? 1 : 0.5 }}
         whileHover={enabled ? { scale: 1.02 } : {}}
-        onClick={() => enabled && handlePayment('cash')}
+        onClick={handleCashPayment}
         disabled={!enabled}
         className="w-full border border-[#700100] text-[#700100] px-4 py-3 rounded-md hover:bg-[#F1F0FB] transition-all duration-300 flex items-center justify-center gap-2 disabled:cursor-not-allowed"
       >
